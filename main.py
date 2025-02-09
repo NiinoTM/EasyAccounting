@@ -1,54 +1,81 @@
+# main.py
 import sys
-from PyQt6.QtWidgets import QApplication, QMainWindow, QMenuBar, QMenu, QWidget, QVBoxLayout, QLabel
+from pathlib import Path
+from PyQt6.QtWidgets import (
+    QApplication, QMainWindow, QWidget, QVBoxLayout, 
+    QLabel, QMessageBox, QStatusBar, QMenu
+)
+from PyQt6.QtCore import Qt
+from connection import DatabaseConnection, DatabaseError
 
-class MyProgram(QMainWindow):
+class FinancialManagementSystem(QMainWindow):
+    """Main application window for the Financial Management System."""
+    
     def __init__(self):
         super().__init__()
+        self.init_database()
+        self.init_ui()
+        self.setup_status_bar()
 
-         # Set the window title
-        self.setWindowTitle("MyProgram")
+    def init_database(self):
+        """Initialize database connection."""
+        try:
+            self.db = DatabaseConnection()
+        except DatabaseError as e:
+            self.show_error_dialog("Database Error", str(e))
+            sys.exit(1)
 
-        # Set the window size
-        self.resize(800, 600)
+    def init_ui(self):
+        """Initialize the user interface."""
+        self.setWindowTitle("Financial Management System")
+        self.setMinimumSize(800, 600)
+        self.setup_central_widget()
+        self.setup_menu_bar()
+        self.center_window()
 
-        # Center the window on the screen
-        self.center()
-
-
-
-        # Create a central widget for the main window
+    def setup_central_widget(self):
+        """Set up the central widget and main layout."""
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
+        
+        layout = QVBoxLayout(self.central_widget)
+        layout.setContentsMargins(10, 10, 10, 10)
+        
+        self.dashboard = QLabel("Financial Dashboard")
+        self.dashboard.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(self.dashboard)
 
-        # Create a layout for the central widget
-        self.layout = QVBoxLayout(self.central_widget)
-
-        # Create a blank interactive dashboard (placeholder)
-        self.dashboard = QLabel("Interactive Dashboard Area")
-        self.layout.addWidget(self.dashboard)
-
-        # Create the menu bar
-        self.create_menu_bar()
-
-    def create_menu_bar(self):
-        # Create a menu bar
+    def setup_menu_bar(self):
+        """Set up the application menu bar."""
         menubar = self.menuBar()
+        
+        # Setup menu
+        setup_menu = menubar.addMenu("&Setup")
+        self.create_categories_menu(setup_menu)
+        self.create_accounts_menu(setup_menu)
+        self.create_fiscal_period_menu(setup_menu)
+        
+        # Other menus
+        self.create_transactions_menu(menubar)
+        self.create_templates_menu(menubar)
+        self.create_reports_menu(menubar)
+        self.create_assets_menu(menubar)
+        self.create_backup_menu(menubar)
+        self.create_help_menu(menubar)
 
-        # Create a "Setup" menu
-        setup_menu = menubar.addMenu("Setup")
-
-        # Create a "Categories" submenu
-        categories_menu = setup_menu.addMenu("Categories")
+    def create_categories_menu(self, parent_menu: QMenu):
+        """Create the categories submenu."""
+        categories_menu = parent_menu.addMenu("Categories")
         categories_menu.addAction("Register Category")
         categories_menu.addSeparator()
         categories_menu.addAction("View Categories")
         categories_menu.addAction("Update Category")
         categories_menu.addSeparator()
-
         categories_menu.addAction("Delete Category")
 
-        # Create an "Accounts" submenu
-        accounts_menu = setup_menu.addMenu("Accounts")
+    def create_accounts_menu(self, parent_menu: QMenu):
+        """Create the accounts submenu."""
+        accounts_menu = parent_menu.addMenu("Accounts")
         accounts_menu.addAction("Register Account")
         accounts_menu.addSeparator()
         accounts_menu.addAction("View Accounts")
@@ -56,83 +83,91 @@ class MyProgram(QMainWindow):
         accounts_menu.addSeparator()
         accounts_menu.addAction("Delete Account")
 
-        # Create a "Fiscal Period" submenu
-        fiscal_period_menu = setup_menu.addMenu("Fiscal Period")
-        fiscal_period_menu.addAction("Register Period")
-        fiscal_period_menu.addAction("View Periods")
-        fiscal_period_menu.addSeparator()
-        fiscal_period_menu.addAction("Delete Period")
+    def create_fiscal_period_menu(self, parent_menu: QMenu):
+        """Create the fiscal period submenu."""
+        fiscal_menu = parent_menu.addMenu("Fiscal Period")
+        fiscal_menu.addAction("Register Period")
+        fiscal_menu.addAction("View Periods")
+        fiscal_menu.addSeparator()
+        fiscal_menu.addAction("Delete Period")
 
-        # Create a "Transactions" menu
-        transactions_menu = menubar.addMenu("Transactions")
+    def create_transactions_menu(self, menubar):
+        """Create the transactions menu."""
+        trans_menu = menubar.addMenu("&Transactions")
+        trans_menu.addAction("New Transaction")
+        trans_menu.addAction("New Transaction from Template")
+        trans_menu.addSeparator()
+        trans_menu.addAction("View Transactions")
+        trans_menu.addAction("Edit Transaction")
+        trans_menu.addAction("Delete Transaction")
 
-        # Add actions to the "Transactions" menu
-        transactions_menu.addAction("New Transaction")
-        transactions_menu.addAction("New Transaction from Template")
-        transactions_menu.addSeparator()
-        transactions_menu.addAction("View Transactions")
-        transactions_menu.addAction("Edit Transaction")
-        transactions_menu.addAction("Delete Transaction")
-
-        # Create a "Templates" menu
-        templates_menu = menubar.addMenu("Templates")
-
-        # Add actions to the "Templates" menu
+    def create_templates_menu(self, menubar):
+        """Create the templates menu."""
+        templates_menu = menubar.addMenu("&Templates")
         templates_menu.addAction("New Template")
         templates_menu.addAction("View Templates")
         templates_menu.addSeparator()
         templates_menu.addAction("Edit Template")
         templates_menu.addAction("Delete Template")
 
-        # Create a "Reports" menu
-        reports_menu = menubar.addMenu("Reports")
-
-        # Add actions to the "Reports" menu
+    def create_reports_menu(self, menubar):
+        """Create the reports menu."""
+        reports_menu = menubar.addMenu("&Reports")
         reports_menu.addAction("Income Statement (DRP)")
         reports_menu.addAction("Balance Sheet")
         reports_menu.addAction("Financial Ratios")
 
-        # Create a "Depreciable Assets" menu
-        assets_menu = menubar.addMenu("Depreciable Assets")
-
-        # Add actions to the "Depreciable Assets" menu
+    def create_assets_menu(self, menubar):
+        """Create the assets menu."""
+        assets_menu = menubar.addMenu("&Assets")
         assets_menu.addAction("Register Asset")
         assets_menu.addAction("View Assets")
         assets_menu.addSeparator()
         assets_menu.addAction("Calculate Depreciation")
 
-        # Create a "Backup/Import" menu
-        backup_menu = menubar.addMenu("Backup/Import")
-
-        # Add actions to the "Backup/Import" menu
+    def create_backup_menu(self, menubar):
+        """Create the backup menu."""
+        backup_menu = menubar.addMenu("&Backup")
         backup_menu.addAction("Import Backup Data")
 
-        # Create a "Help" menu
-        help_menu = menubar.addMenu("Help")
-
-        # Add actions to the "Help" menu
+    def create_help_menu(self, menubar):
+        """Create the help menu."""
+        help_menu = menubar.addMenu("&Help")
         help_menu.addAction("About")
 
-    def center(self):
-        # Get the screen geometry
-        screen_geometry = QApplication.primaryScreen().geometry()
+    def setup_status_bar(self):
+        """Set up the application status bar."""
+        self.status_bar = QStatusBar()
+        self.setStatusBar(self.status_bar)
+        self.status_bar.showMessage("Ready")
 
-        # Calculate the center position
-        x = (screen_geometry.width() - self.width()) // 2
-        y = (screen_geometry.height() - self.height()) // 2
+    def center_window(self):
+        """Center the window on the screen."""
+        frame_geometry = self.frameGeometry()
+        screen_center = QApplication.primaryScreen().availableGeometry().center()
+        frame_geometry.moveCenter(screen_center)
+        self.move(frame_geometry.topLeft())
 
-        # Move the window to the center
-        self.move(x, y)
+    def show_error_dialog(self, title: str, message: str):
+        """Show error dialog with the given title and message."""
+        QMessageBox.critical(self, title, message)
+
+    def closeEvent(self, event):
+        """Handle application close event."""
+        reply = QMessageBox.question(
+            self, 'Confirm Exit',
+            'Are you sure you want to exit?',
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No
+        )
+        
+        if reply == QMessageBox.StandardButton.Yes:
+            event.accept()
+        else:
+            event.ignore()
 
 if __name__ == "__main__":
-    # Create the application
     app = QApplication(sys.argv)
-
-    # Create an instance of MyProgram
-    window = MyProgram()
-
-    # Show the window
+    window = FinancialManagementSystem()
     window.show()
-
-    # Execute the application
     sys.exit(app.exec())
