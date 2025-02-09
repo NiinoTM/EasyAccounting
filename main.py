@@ -7,6 +7,8 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt
 from connection import DatabaseConnection, DatabaseError
+from categories import Categories
+from accounts import Accounts
 
 class FinancialManagementSystem(QMainWindow):
     """Main application window for the Financial Management System."""
@@ -14,6 +16,9 @@ class FinancialManagementSystem(QMainWindow):
     def __init__(self):
         super().__init__()
         self.init_database()
+        self.categories = Categories(self)  # Create an instance of Categories
+        self.accounts = Accounts(self) # Create an instance of Accounts
+
         self.init_ui()
         self.setup_status_bar()
 
@@ -51,8 +56,8 @@ class FinancialManagementSystem(QMainWindow):
         
         # Setup menu
         setup_menu = menubar.addMenu("&Setup")
-        self.create_categories_menu(setup_menu)
-        self.create_accounts_menu(setup_menu)
+        self.categories.create_categories_menu(setup_menu)
+        self.accounts.create_accounts_menu(setup_menu)
         self.create_fiscal_period_menu(setup_menu)
         
         # Other menus
@@ -62,16 +67,6 @@ class FinancialManagementSystem(QMainWindow):
         self.create_assets_menu(menubar)
         self.create_backup_menu(menubar)
         self.create_help_menu(menubar)
-
-    def create_categories_menu(self, parent_menu: QMenu):
-        """Create the categories submenu."""
-        categories_menu = parent_menu.addMenu("Categories")
-        categories_menu.addAction("Register Category")
-        categories_menu.addSeparator()
-        categories_menu.addAction("View Categories")
-        categories_menu.addAction("Update Category")
-        categories_menu.addSeparator()
-        categories_menu.addAction("Delete Category")
 
     def create_accounts_menu(self, parent_menu: QMenu):
         """Create the accounts submenu."""
